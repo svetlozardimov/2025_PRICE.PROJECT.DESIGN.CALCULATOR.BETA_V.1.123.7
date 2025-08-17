@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>КАЛКУЛАТОР ЗА ОПРЕДЕЛЯНЕ НА ОБЩА ЦЕНА НА ПРОЕКТИРАНЕ</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧮</text></svg>">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="main-layout">
+        <!-- СТРАНИЧНА ЛЕНТА -->
+        <div id="sidebar">
+            <div id="controls">
+                <h2>Настройки на проекта</h2>
+                <div class="input-group"><label for="projectName">Име на обекта</label><input type="text" id="projectName" placeholder="Въведете име на обекта..."></div>
+                <div class="input-group"><label for="vazlozhitel">Възложител</label><input type="text" id="vazlozhitel" placeholder="Име на клиент / фирма..."></div>
+                <div class="input-group"><label for="izpalnitel">Изпълнител</label><input type="text" id="izpalnitel" placeholder="Име на проектант / фирма..."></div>
+                <div class="input-group"><label>Етап на проектиране</label><button id="projectPhaseBtn" class="action-btn" title="Кликни за превключване на етапа"></button><input type="hidden" id="projectPhase"></div>
+                <div class="input-group">
+                    <label>Лого на изпълнител</label>
+                    <div id="logo-preview-wrapper" style="text-align: center; margin-bottom: 10px; display: none;">
+                         <img id="logoPreview" src="" alt="Лого" style="max-height: 50px; border: 1px solid #ddd;">
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 10px;">
+                        <button id="uploadLogoBtn" class="action-btn" style="width: auto;" title="Качете лого (.png или .jpg)">Качи лого</button>
+                        <button id="removeLogoBtn" class="action-btn" style="width: auto; display: none;" title="Премахнете каченото лого">Премахни</button>
+                    </div>
+                    <input type="file" id="logoUploadInput" accept="image/png, image/jpeg" style="display: none;">
+                </div>
+                <div class="input-group"><label for="currencyMode">Валута</label><select id="currencyMode" title="Изберете как да се показват валутите в калкулатора"><option value="bgn_eur">Лева (с Евро в скоби)</option><option value="eur">Само Евро</option><option value="bgn">Само Лева</option></select></div>
+                <div class="input-group"><label><input type="checkbox" id="showAdvanceCheck" title="Покажи/скрий колоните 'Платено' и 'Остатък'"> Покажи колони за плащания</label></div>
+            </div>
+            <div id="bonusBlock">
+                <div class="input-group"><label><input type="checkbox" id="bonusCheck" title="Добави процент бонус върху общата сума по проекта"> Добави процент за екип-бонус</label></div>
+                <div id="bonusOptions" style="display: none;">
+                  <div class="input-group"><label for="bonusPercent">Процент за екип-бонус</label><input type="number" id="bonusPercent" min="0" max="100" value="10" step="0.01"></div>
+                  <div class="input-group"><label><input type="checkbox" id="bonusIsPaidCheck" title="Маркирайте, ако бонусът е изплатен изцяло"> Бонусът е изплатен изцяло</label></div>
+                </div>
+            </div>
+            <div id="templateContainer">
+                <label class="sidebar-label">Шаблони:</label>
+                <div class="sidebar-btn-grid">
+                    <button id="loadTemplateBtn" class="action-btn" title="Заредете предварително запазен шаблон със специалности и изпълнители">Зареди шаблон</button>
+                    <button id="saveTemplateBtn" class="action-btn" title="Запазете текущия списък със специалности и изпълнители като шаблон за бъдещи проекти">Запази като шаблон</button>
+                </div>
+                <input type="file" id="templateFile" accept=".json" style="display: none;">
+            </div>
+            <div id="file-management">
+                <label class="sidebar-label">Управление на файлове:</label>
+                <div class="sidebar-btn-grid">
+                    <button id="newProjectBtn" class="action-btn" title="Изчистете всичко и започнете нов, празен проект">Нов проект</button>
+                    <button id="importBtn" class="action-btn" title="Отворете .json файл от предишен проект">Отвори проект</button>
+                    <button id="exportBtn" class="action-btn" title="Запазете цялата информация за проекта в .json файл">Запази проект</button>
+                </div>
+                <label class="sidebar-label" style="margin-top:15px;">Експорт:</label>
+                <div class="sidebar-btn-grid">
+                    <button id="exportCsvBtn" class="action-btn" title="Експортирайте таблицата в CSV формат, съвместим с Excel">CSV (за Excel)</button>
+                    <button id="exportTxtBtn" class="action-btn" title="Експортирайте таблицата като форматиран текстов файл">TXT (за справки)</button>
+                </div>
+            </div>
+            <div id="project-notes-management">
+                <label class="sidebar-label">Общи бележки:</label>
+                 <button id="projectNotesBtn" class="action-btn" title="Преглед и редакция на общите бележки по проекта">Преглед / Редакция</button>
+            </div>
+            <div id="reports-management">
+                <label class="sidebar-label">Справки:</label>
+                <div class="sidebar-btn-grid">
+                    <button id="generateSummaryReportBtn" class="action-btn" title="Генерирайте детайлна справка за всички специалности">Обща справка</button>
+                    <button id="generateContactsBtn" class="action-btn" title="Генерирайте списък с контактите на всички изпълнители">Контакти</button>
+                    <button id="generateNotesReportBtn" class="action-btn" title="Генерирайте справка с всички бележки по проекта">Бележки</button>
+                </div>
+            </div>
+            <div id="help-container" style="margin-top: 20px;">
+                <button id="helpBtn" class="action-btn" title="Отворете подробно упътване за работа с калкулатора в нов прозорец">Помощ / Упътване</button>
+            </div>
+        </div>
+
+        <!-- ОСНОВНО СЪДЪРЖАНИЕ -->
+        <div id="main-content">
+            <button id="sidebarToggleBtn" class="sidebar-toggle-btn" title="Покажи/скрий менюто с настройки">☰</button>
+            <button id="themeToggleBtn" class="theme-toggle-btn" title="Смени темата">🎨</button>
+            
+            <div id="printHeader">
+                <div class="print-header-logo-container"><img id="printLogo" src="" alt="Лого"></div>
+                <div class="print-header-main">
+                    <h2 id="printProjectName"></h2>
+                    <p id="printProjectArea"></p>
+                    <p id="printProjectPhase"></p>
+                </div>
+                <div class="print-header-parties">
+                    <div class="print-header-info"><strong>Възложител:</strong> <span id="printVazlozhitel"></span></div>
+                    <div class="print-header-info" style="text-align: right;"><strong>Изпълнител:</strong> <span id="printIzpalnitel"></span></div>
+                </div>
+            </div>
+            <h2 class="main-title">КАЛКУЛАТОР ЗА ИЗЧИСЛЯВАНЕ НА ЦЕНА ЗА ПРОЕКТИРАНЕ</h2>
+            <span class="version-info">BETA BUILD (Version V1.123 / 17.08.2025)</span>
+            <div id="toastNotification"></div>
+
+            <div id="main-area-input-container"><div class="input-group"><label for="area">Квадратура (м²)</label><input type="number" id="area" step="0.01" min="0"></div></div>
+            
+            <div id="filterContainer" class="no-print">
+                <label style="font-weight: 500;">Филтри:</label>
+                <label title="Скрива всички редове, маркирани като платени изцяло (с отметка ✓)"><input type="checkbox" id="filterActiveOnly"> Покажи само активните</label>
+                <label title="Скрива всички редове, маркирани със статус 'Завършен' (зелено кръгче)"><input type="checkbox" id="filterUnfinishedOnly"> Покажи само незавършените</label>
+            </div>
+            
+            <div id="special-calculators-container" class="no-print">
+                <button id="openMiniCalcBtn" class="action-btn special-calc-btn">
+                    <span class="btn-icon">🧮</span> Калкулатор себестойност част СК
+                </button>
+            </div>
+
+            <table><thead id="tableHead"></thead><tbody id="rows"></tbody></table>
+            <div id="addSpecialtyContainer" class="no-print"><button id="addSpecialtyBtn" class="action-btn" title="Добавете нов празен ред в края на таблицата">Добави ред</button></div>
+            <div id="totals"></div>
+            <div class="print-btn-container no-print"><button id="printBtn" class="action-btn" title="Принтирайте справка, съдържаща данните за проекта, таблицата и общите суми">Принтирай справка</button></div>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛНИ ПРОЗОРЦИ -->
+<div id="breakdownModal" class="modal"><div class="modal-content"><span class="modal-close">&times;</span><div id="modalSpecialtyName"></div><div class="modal-body"><table class="modal-breakdown-table"><tbody id="breakdownModalBody"></tbody></table></div><div class="modal-footer-actions"><button id="exportBreakdownTxtBtn" class="action-btn action-btn-info">Експорт (.txt)</button><button id="printBreakdownBtn" class="action-btn action-btn-info">Принтирай</button></div></div></div>
+<div id="noteModal" class="modal"><div class="modal-content"><span class="modal-close">&times;</span><h3 id="noteModalTitle"></h3><div class="modal-body"><ul id="note-list"></ul></div><div id="add-note-container"><input type="text" id="new-note-input" placeholder="Добави нова бележка..."><button id="add-note-btn" class="action-btn">Добави</button></div><div class="modal-footer-actions"><button id="exportNoteTxtBtn" class="action-btn action-btn-info">Експорт (.txt)</button><button id="printNoteBtn" class="action-btn action-btn-info">Принтирай</button><button id="noteSaveBtn" class="action-btn">Затвори</button></div></div></div>
+<div id="projectNoteModal" class="modal"><div class="modal-content"><span class="modal-close">&times;</span><h3>Общи бележки по проекта</h3><div class="modal-body"><ul id="project-note-list"></ul></div><div id="add-project-note-container"><input type="text" id="new-project-note-input" placeholder="Добави нова обща бележка..."><button id="add-project-note-btn" class="action-btn">Добави</button></div><div class="modal-footer-actions"><button id="exportProjectNotesTxtBtn" class="action-btn action-btn-info">Експорт (.txt)</button><button id="printProjectNotesBtn" class="action-btn action-btn-info">Принтирай</button><button id="projectNoteSaveBtn" class="action-btn">Затвори</button></div></div></div>
+<div id="paymentModal" class="modal"><div class="modal-content"><span class="modal-close">&times;</span><h3 id="paymentModalTitle"></h3><div class="modal-body"><div class="summary"><div class="summary-item">Общо дължимо<strong id="paymentModalTotal"></strong></div><div class="summary-item">Платено<strong id="paymentModalPaid"></strong></div><div class="summary-item">Остатък<strong id="paymentModalRemaining"></strong></div></div><div id="paymentStagesContainer"></div></div><div class="modal-actions"><button id="paymentCancelBtn" class="action-btn">Отказ</button><button id="paymentSaveBtn" class="action-btn">Запази</button></div></div></div>
+<div id="contractorModal" class="modal"><div class="modal-content"><span class="modal-close">&times;</span><h3 id="contractorModalTitle"></h3><div class="modal-body"><div class="input-group"><label for="contractorName">Име на изпълнител</label><input type="text" id="contractorName" list="existingContractors"><datalist id="existingContractors"></datalist></div><div class="input-group"><label for="contractorEmail">Имейл</label><input type="email" id="contractorEmail"></div><div class="input-group"><label for="contractorPhone">Телефон</label><input type="tel" id="contractorPhone"></div></div><div class="modal-actions"><button id="contractorRemoveBtn" class="action-btn">Премахни</button><button id="contractorCancelBtn" class="action-btn">Отказ</button><button id="contractorSaveBtn" class="action-btn">Запази</button></div></div></div>
+<div id="reportModal" class="modal"><div class="modal-content"><span class="modal-close">&times;</span><h3 id="reportModalTitle"></h3><div id="reportModalBody" class="modal-body"></div><div class="modal-footer-actions"><button id="exportReportTxtBtn" class="action-btn action-btn-info">Експорт (.txt)</button><button id="printReportBtn" class="action-btn action-btn-info">Принтирай</button></div></div></div>
+
+<div id="miniCalcModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div id="miniCalcBody" class="modal-body">
+            <!-- Съдържанието се зарежда от mini-calculator.js -->
+        </div>
+        <div class="modal-footer-actions">
+            <button id="exportMiniCalcTxtBtn" class="action-btn action-btn-info">Експорт (.txt)</button>
+            <button id="printMiniCalcBtn" class="action-btn action-btn-info">Принтирай</button>
+            <button id="addFromMiniCalcBtn" class="action-btn action-btn-success">Добави към проекта</button>
+        </div>
+    </div>
+</div>
+
+<footer class="page-footer"><span id="copyright-notice"></span></footer>
+
+<script type="module" src="js/main.js"></script>
+
+<script>document.getElementById('copyright-notice').innerHTML = `&copy; ${new Date().getFullYear()} инж. Светлозар Димов. Всички права запазени.`;</script>
+</body>
+</html>
